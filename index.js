@@ -18,26 +18,38 @@ client.once('ready', async (client) => {
 client.on('messageDelete', async msg => {
     try{
         if(msg.channel.type !== "DM") return;
-        if(!msg.content.toLowerCase().startsWith('.s')) return;
 
         let args = msg.content.split(" ");
-        args.shift();
-
-        let msg_to_send = "✉️ **Anonymous: **" + args.join(" ");
-
+        let cmd = args.shift().toLowerCase();
 
         let channel = await client.channels.fetch(process.env.CHANNEL_ID);
-
         if(!channel) return;
 
-        await channel.send({
-            content: msg_to_send
-        })
+        if(cmd === '.s' || cmd === '.sr') {
+            let msgId = cmd === '.sr' ? args.shift() : null;
+            let msg_to_send = "✉️ **Anonymous: **" + args.join(" ");
+            let message = msgId ? await channel.messages.fetch(msgId) : await channel.send({ content: msg_to_send });
+            if(cmd === '.sr') await message.reply({ content: msg_to_send });
+        } else if(cmd === '.sreacc') {
+            let msgId = args.shift();
+            let emoji = args.shift();
+            let message = await channel.messages.fetch(msgId);
+            if(message) await message.react(emoji);
+        } else if(cmd === '.se') {
+            let msgId = args.shift();
+            let newContent = "✉️ **Anonymous: **" + args.join(" ");
+            let message = await channel.messages.fetch(msgId);
+            if(message) await message.edit({ content: newContent });
+        } else if(cmd === '.sd') {
+            let msgId = args.shift();
+            let message = await channel.messages.fetch(msgId);
+            if(message) await message.delete();
+        } 
     }catch(err){
         console.log("Err on /src/index.js");
         console.log(err);
     }
-})
+});
 
 client.login(process.env.SELF_TOKEN)
 
